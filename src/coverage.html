@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>gc: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">gc/gc.go (22.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package gc
+
+import (
+        "fmt"
+        "math/rand"
+        "time"
+)
+
+type test struct {
+        var1 []string
+        var2 []int
+        var3 bool
+}
+
+func cpuhigh(randV1 int) <span class="cov0" title="0">{
+        randV2 := rand.Intn(100000)
+        for </span><span class="cov0" title="0">{
+                r := (randV1 + randV2) / (randV1 + 1) * randV2
+                _ = r
+                if (((r*1000)/10)*randV2)%8 == 0 </span><span class="cov0" title="0">{
+                        time.Sleep(50 * time.Millisecond)
+                }</span>
+        }
+}
+
+func heapescape(id, randLength int) (*test, []int) <span class="cov0" title="0">{
+        t := &amp;test{}
+        t.var1 = make([]string, 65535)
+        for i := 0; i &lt; 500+randLength; i++ </span><span class="cov0" title="0">{
+                t.var1 = append(t.var1, "aaaa")
+                t.var2 = append(t.var2, i)
+                fmt.Println(id, "var1", len(t.var1), cap(t.var1))
+                //time.Sleep(20 * time.Millisecond)
+        }</span>
+        <span class="cov0" title="0">t.var3 = true
+        n := make([]int, 1024*1024*1)
+        return t, n</span>
+}
+
+func GCMain(num int) <span class="cov0" title="0">{
+        //length := 100
+        /*go func() {
+                for i := 0; i &lt; 100000; i++ {
+                        r := rand.Intn(100000)
+                        go cpuhigh(r)
+                }
+        }()
+        */
+        go func() </span><span class="cov0" title="0">{
+                for i := 0; i &lt; num; i++ </span><span class="cov0" title="0">{
+                        r := rand.Intn(10000)
+                        go heapescape(i, r)
+
+                }</span>
+        }()
+}
+
+func sliceRetrunEscape() []int <span class="cov8" title="1">{
+        s := []int{1, 2, 3}
+
+        return s
+}</span>
+
+//maxStackVarSize,maxImplicitStackVarSize定义在https://github.com/golang/go/blob/master/src/cmd/compile/internal/gc/go.go
+func sliceSizeExceedLimitEscape() <span class="cov8" title="1">{
+        // var 申明的变量，占用stack超过maxStackVarSize=int64(10*1024*1024)，将escape到heap
+        go func() </span><span class="cov8" title="1">{
+                var x [10 * 1024 * 1024]byte // no escape, as maxStackVarSize=int64(10*1024*1024)
+                _ = x
+                var y [10*1024*1024 + 1]byte // escape
+                _ = y
+                z := [10*1024*1024 + 1]byte{} // escape
+                _ = z
+        }</span>()
+
+        // make 申明的变量，占用stack超过maxImplicitStackVarSize=int64(64*1024)，65535，将escape到heap
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                _ = make([]byte, 64*1024-1) // no escape
+                _ = make([]byte, 64*1024)   // escape
+                _ = make([]int, 10000)      // escape, 8*10000=80000&gt;65535 as 64 OS, int is 8 byte.
+        }</span>()
+
+        //sliceOverFunction(100)
+}
+
+func t1(v1 []int) {<span class="cov0" title="0">
+}</span>
+
+func t2(v2 []int) []int <span class="cov0" title="0">{
+        x := v2
+        x[0] = 100
+        return x
+}</span>
+func t3(v3 *[]int) *[]int <span class="cov0" title="0">{
+        v := v3
+        return v
+}</span>
+func t4(v3 []int) *[]int <span class="cov0" title="0">{
+        v := v3
+        return &amp;v
+}</span>
+
+func sliceOverFunction(len int) ([]int, [2]int, *[2]int) <span class="cov0" title="0">{
+        _ = make([]int, len) // escape, variable length with slice, even if call the function with len=100
+
+        s1 := []int{1, 2}  // escape, as return outside
+        s2 := [2]int{1, 2} // no escape, as it's array and return value to outside
+        s3 := [2]int{1, 2} // escape, although it's array, it return address to outside
+        s4 := make([]int, 2)
+        t1(s4) // no escape
+        s5 := []int{1, 2}
+        t2(s5) // no escape
+
+        s6 := []int{1, 2}
+        t3(&amp;s6) // no escape
+
+        s7 := []int{1, 2}
+        t4(s7) // escape
+
+        return s1, s2, &amp;s3
+}</span>
+
+func test1() {<span class="cov0" title="0">
+
+}</span>
+
+func closureEscape() <span class="cov0" title="0">{
+
+        // func escape
+        func() </span><span class="cov0" title="0">{
+                x := 100
+                _ = x
+        }</span>()
+
+        // func escape
+        <span class="cov0" title="0">go func() </span><span class="cov0" title="0">{
+                x := 100
+                _ = x
+        }</span>()
+
+        // no escape
+        <span class="cov0" title="0">go test1()</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
