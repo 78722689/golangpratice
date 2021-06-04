@@ -1,0 +1,5 @@
+package mynet
+
+func server() {
+
+}
