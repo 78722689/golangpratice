@@ -3,6 +3,7 @@ package main
 import (
 	"golangpratice/channel"
 	"golangpratice/gc"
+	"golangpratice/https"
 	"golangpratice/kafka"
 	"golangpratice/mycontext"
 	"golangpratice/mysync"
@@ -76,6 +77,8 @@ func main() {
 		} else {
 			rpc.RPCClientMain(os.Args[4], tls)
 		}
+	case "https":
+		https.HTTPSMain()
 	default:
 		usage()
 	}
