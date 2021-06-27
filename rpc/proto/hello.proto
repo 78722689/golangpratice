@@ -1,0 +1,30 @@
+syntax = "proto3";
+option go_package = "./rpc/proto";
+
+package proto;
+
+// Greeter 微服务
+service Greeter {
+  rpc Say1(SayWhat) returns (stream ReplyWhat){}
+  rpc Say2(stream SayWhat) returns (ReplyWhat){}
+  rpc Say3 (HelloRequest) returns (HelloReply) {}
+  rpc Say4( stream SayWhat) returns (stream ReplyWhat) {}
+}
+
+// HelloRequest 请求数据格式
+message HelloRequest {
+  string name = 1;
+}
+
+// HelloReply 响应数据格式
+message HelloReply {
+  string message = 1;
+}
+
+message SayWhat {
+  string what = 1;
+}
+
+message ReplyWhat {
+  string what = 1;
+}

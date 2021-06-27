@@ -1,16 +1,17 @@
 package main
 
 import (
-	"channel"
-	"gc"
-	"kafka"
-	"mycontext"
-	"mypprof"
-	"mysync"
+	"golangpratice/channel"
+	"golangpratice/gc"
+	"golangpratice/kafka"
+	"golangpratice/mycontext"
+	"golangpratice/mysync"
+	"golangpratice/rpc"
+	"golangpratice/tip"
+	"log"
 	"os"
 	"runtime"
 	"time"
-	"tip"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	runtime.GOMAXPROCS(2)
 	// 设置CPU采样率，默认是100, 设置低了可能采集不到CPU数据，推荐设置高一点。
 	runtime.SetCPUProfileRate(500)
+	log.SetFlags(log.Lshortfile | log.Ltime | log.Lmicroseconds | log.LstdFlags)
 	/*
 		cpuprofile := `./cpu.profile`
 		//if cpuprofile != "" {
@@ -35,7 +37,7 @@ func main() {
 		//}
 		defer pprof.StopCPUProfile()
 	*/
-	mypprof.StartNetworkProfile()
+	//mypprof.StartNetworkProfile()
 
 	time.Sleep(1 * time.Second)
 
@@ -61,7 +63,19 @@ func main() {
 		mysync.TestSync()
 	case "gc":
 		gc.GCMain(10000)
-
+	case "rpc":
+		if len(os.Args) < 3 {
+			log.Fatal("Arguments are not enough")
+		}
+		tls := false
+		if len(os.Args) >= 4 && os.Args[3] == "tls" {
+			tls = true
+		}
+		if os.Args[2] == "server" {
+			rpc.RPCServerMain(tls)
+		} else {
+			rpc.RPCClientMain(os.Args[4], tls)
+		}
 	default:
 		usage()
 	}
@@ -76,7 +90,7 @@ func main() {
 	*/
 	//}
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(10 * time.Second)
 	/*runtime.GC() // get up-to-date statistics
 	if err := pprof.WriteHeapProfile(f); err != nil {
 		log.Fatal("could not write memory profile: ", err)
