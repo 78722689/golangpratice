@@ -15,7 +15,7 @@
       cd $GOPATH/httpsserver
       go build -o example.exe .
     3.2 运行服务端
-      example.exe https -strart=server
+      example.exe https -start=server
     3.3 运行客户端发送数据
       example.exe https -start=client -send="11,22,33,44,55,aa,bb,cc"
 
